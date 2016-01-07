@@ -16,9 +16,9 @@ import org.opencv.ml.CvSVM;
 import org.opencv.ml.CvSVMParams;
 import org.opencv.ml.CvStatModel;
 
-import com.zzh.img.Image;
-import com.zzh.img.PosMat;
-import com.zzh.utils.Sort;
+import com.zzh.image.Image;
+import com.zzh.image.RectMat;
+import com.zzh.utils.MatSort;
 import com.zzh.utils.Utils;
 
 public class KNearest {
@@ -51,24 +51,6 @@ public class KNearest {
 			float label = Float.valueOf(file.getName());
 			File[] subFiles = new File(file.getAbsolutePath()).listFiles();
 			for (File subFile : subFiles) {
-//				ArrayList<Mat> subMats = Image.findSubMats(subFile
-//						.getAbsolutePath());
-//				if (subMats.size() == 0) {
-//					System.err.println(subFile.getName());
-//					System.err.println("训练样本中的所有子图都被过滤掉了");
-//					continue;
-//				}
-//				if (subMats.size() > 1) {
-//					System.err.println(subFile.getName());
-//					System.err.println("训练样本中一张图包含多个数字");
-//					String filename;
-//					for (int i = 0; i < subMats.size(); i++) {
-//						filename = "img_" + i + ".png";
-//						System.out.println(String.format("Writing %s", filename));
-//						Highgui.imwrite(filename, subMats.get(i));
-//					}
-//					System.exit(0);
-//				}
 				// 要求样本已经经过二值化切割处理，直接归一化并读取
 				Mat normMat = Image.normalize(Highgui.imread(subFile.getPath()));
 				double[] feature = Feature.feature(normMat);
@@ -106,14 +88,16 @@ public class KNearest {
 
 	public static void main(String[] args) {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		KNearest knn = new KNearest(3);
+		KNearest knn = new KNearest(6);
 		knn.loadSamples();
 		knn.train();
 
-		ArrayList<PosMat> mats = Image.findSubMats("test/card/img_card_number.png");
-		// 排序
-		Collections.sort(mats, new Sort());
+		ArrayList<RectMat> mats = Image.findSubMats("test/card/img_card_number2.png");
+		// 对区块位置排序
+		Collections.sort(mats, new MatSort());
 		for (int i = 0; i < mats.size(); i++) {
+			String filename = "test/2/img_" + i + ".png";
+			Highgui.imwrite(filename, mats.get(i).getMat());
 			Mat normMat = Image.normalize(mats.get(i).getMat());
 			System.out.print((int)knn.predict(Feature.featureMat(normMat)));
 		}
